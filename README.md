@@ -53,6 +53,7 @@ DELETE: /user/{id}
 (Return status 200 or error status code + message)
 
 GET: /moods/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<int>
+Provide either team_id or user_id.
 ```
 [{
     user_id: <int>,
@@ -67,10 +68,24 @@ GET: /moods/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<in
     }]
 },{
     ...
-]}
+}]
 ```
 
-/team/1/moods
+GET Average
+GET: /average/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<int>
+Provide either team_id or user_id.
+```
+[{
+    user_id: <int>,
+    name: <string>,
+    average: <float>
+},{
+    ...
+},
+<float> # team / personal average score
+]
+```
+
 
 
 ### Models
