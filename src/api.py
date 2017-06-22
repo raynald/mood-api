@@ -209,8 +209,8 @@ class Mood(Resource):
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('timestamp', type=str, help='Timestamp address to create mood')
-            parser.add_argument('label', type=str, help='Slug to create mood')
-            parser.add_argument('value', type=str, help='Name to create mood')
+            parser.add_argument('label', type=str, help='Label to create mood')
+            parser.add_argument('value', type=str, help='Value to create mood')
             parser.add_argument('user_id', type=str, help='User Id to create mood')
             args = parser.parse_args()
 
@@ -297,18 +297,20 @@ class Mood(Resource):
     def put(self):
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('description', type=str, help='Description address to create user')
-            parser.add_argument('slug', type=str, help='Slug to create user')
-            parser.add_argument('name', type=str, help='Name to create user')
+            parser.add_argument('timestamp', type=str, help='Timestamp address to update mood')
+            parser.add_argument('label', type=str, help='Label to update mood')
+            parser.add_argument('value', type=str, help='Value to update mood')
+            parser.add_argument('user_id', type=str, help='User Id to update mood')
             args = parser.parse_args()
 
-            _userdescription = args['description']
-            _userSlug = args['slug']
-            _userName = args['name']
+            _moodDescriptoin = args['timestamp']
+            _moodLabel = args['label']
+            _moodValue = args['value']
+            _moodUserId = args['user_id']
 
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('spUpdateMood',(_userName, _userSlug, _userdescription))
+            cursor.callproc('spUpdateMood',(_moodDescriptoin, _moodLabel, _moodValue, _moodUserId))
             data = cursor.fetchall()
 
             if len(data) is 0:
@@ -338,12 +340,73 @@ class DeleteMood(Resource):
             return {'error': str(e)}
 
 
+class Analysis(Resource):
+    def get(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('start_date', type=str, help='Start timestamp address to get mood')
+            parser.add_argument('end_date', type=str, help='End timestamp to get mood')
+            parser.add_argument('team_id', type=int, help='Team Id to get mood')
+            parser.add_argument('user_id', type=int, help='User Id to get mood')
+            args = parser.parse_args()
+
+            _moodStartDate = args['start_date']
+            _moodEndDate = args['end_date']
+            _moodTeamId = args['team_id']
+            _moodUserId = args['user_id']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            users = []
+            if _moodTeamId:
+                print _moodTeamId
+                cursor.callproc('spGetUsersPerTeam', (_moodTeamId,))
+                data = cursor.fetchall()
+                for user in data:
+                    users += [
+                        {
+                            'user_id': user[0],
+                            'name': user[1]
+                        }
+                    ]
+            else:
+                if _moodUserId:
+                    cursor.callproc('spGetUser', (_moodUserId,))
+                    data = cursor.fetchall()
+                    for user in data:
+                        users += [
+                            {
+                                'user_id': user[0],
+                                'name': user[1]
+                            }
+                        ]
+                else:
+                    return {'StatusCode': '1000', 'Message': 'Please specify team_id or user_id'}
+            total_average = 0
+            for user in users:
+                cursor.callproc('spGetMoods', (_moodStartDate, _moodEndDate, user['user_id']))
+                data = cursor.fetchall()
+                average = 0
+                for mood in data:
+                    average += mood[3]
+                if len(data) > 0:
+                    average /= 1.0 * len(data)
+                user['average'] = average
+                total_average += average
+            if len(users):
+                total_average /= 1.0 * len(users)
+            users += [ total_average ]
+            return users
+        except Exception as e:
+            return {'error': str(e)}
+
 api.add_resource(User, '/users')
 api.add_resource(DeleteUser, '/user/<string:user_id>')
 api.add_resource(Team, '/teams')
 api.add_resource(DeleteTeam, '/user/<string:team_id>')
 api.add_resource(Mood, '/moods')
 api.add_resource(DeleteMood, '/user/<string:mood_id>')
+api.add_resource(Analysis, '/average')
 
 if __name__ == '__main__':
     app.run(debug=True)
