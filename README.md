@@ -53,6 +53,22 @@ DELETE: /user/{id}
 (Return status 200 or error status code + message)
 
 GET: /moods/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<int>
+```
+[{
+    user_id: <int>,
+    name: <string>,
+    dates: [{
+        id: <int>,
+        timestamp: <timestamp>,
+        label: <string> (emoji),
+        value: <int>,    
+    }, {
+        ...
+    }]
+},{
+    ...
+]}
+```
 
 /team/1/moods
 
