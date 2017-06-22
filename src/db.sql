@@ -112,6 +112,22 @@ END IF;
 END$$
 DELIMITER ;
 
+# Get User
+
+DROP procedure IF EXISTS `spGetUser`;
+
+DELIMITER $$
+USE `MoodDb`$$
+CREATE PROCEDURE `spGetUser` (
+  IN p_id int
+)
+  BEGIN
+    SELECT Id, Name FROM tblUser WHERE Id = p_id;
+  END$$
+
+DELIMITER ;
+
+
 # Get Users
 
 DROP procedure IF EXISTS `spGetUsers`;
@@ -303,14 +319,11 @@ USE `MoodDb`$$
 CREATE PROCEDURE `spGetMoods` (
   IN p_start TIMESTAMP,
   IN p_end TIMESTAMP,
-  IN p_team_id INT,
   IN p_user_id INT
 )
 BEGIN
-  SELECT M.User_Id, M.Id, Timestamp, Label, Value FROM tblMood M, tblUser U, User_Team_Map UTM
-    WHERE M.User_Id = p_user_id AND U.Id = p_user_id AND User_Team_Map.Team_Id = p_team_id
-  AND User_Team_Map.User_Id = p_user_id
-  GROUP BY User_Id;
+  SELECT Id, Timestamp, Label, Value FROM tblMood
+    WHERE User_Id = p_user_id AND Timestamp >= p_start AND Timestamp <= p_end;
 END$$
 
 DELIMITER ;
@@ -326,6 +339,20 @@ CREATE PROCEDURE `spDeleteMood` (
 )
   BEGIN
     DELETE FROM tblMood WHERE Id = p_id;
+  END$$
+
+DELIMITER ;
+
+# Get Users per team
+DROP procedure IF EXISTS `spGetUsersPerTeam`;
+
+DELIMITER $$
+USE `MoodDb`$$
+CREATE PROCEDURE `spGetUsersPerTeam` (
+  IN p_team_id INT
+)
+  BEGIN
+    SELECT Id, Name FROM tblUser A, User_Team_Map B WHERE B.User_Id = A.Id AND B.Team_Id = p_team_id;
   END$$
 
 DELIMITER ;
