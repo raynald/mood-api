@@ -1,2 +1,5 @@
 flask-restful
 flask-mysql
+slackclient
+flask-cors
+requests

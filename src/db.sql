@@ -27,7 +27,7 @@ PRIMARY KEY (`Id`));
 
 CREATE TABLE IF NOT EXISTS `tblMood` (
   `Id` INT NOT NULL AUTO_INCREMENT,
-  `Timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Timestamp` VARCHAR(45) NOT NULL,
   `Label` VARCHAR(45) NOT NULL,
   `Value` INT NOT NULL,
   `User_Id` INT NOT NULL,
@@ -253,7 +253,7 @@ DROP procedure IF EXISTS `spCreateMood`;
 DELIMITER $$
 USE `MoodDb`$$
 CREATE PROCEDURE `spCreateMood` (
-  IN p_timestamp TIMESTAMP,
+  IN p_timestamp INT,
   IN p_label VARCHAR(50),
   IN p_value INT,
   IN p_user_id INT
@@ -291,7 +291,7 @@ DELIMITER $$
 USE `MoodDb` $$
 CREATE PROCEDURE `spUpdateMood` (
   IN p_id INT,
-  IN p_timestamp TIMESTAMP,
+  IN p_timestamp INT,
   IN p_label VARCHAR(50),
   IN p_value INT,
   IN p_user_id INT
@@ -317,8 +317,8 @@ DROP procedure IF EXISTS `spGetMoods`;
 DELIMITER $$
 USE `MoodDb`$$
 CREATE PROCEDURE `spGetMoods` (
-  IN p_start TIMESTAMP,
-  IN p_end TIMESTAMP,
+  IN p_start INT,
+  IN p_end INT,
   IN p_user_id INT
 )
 BEGIN

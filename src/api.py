@@ -2,11 +2,12 @@ from flask import Flask
 from flask_restful import Resource, Api
 from flask_restful import reqparse
 from flaskext.mysql import MySQL
-
+from flask_cors import CORS, cross_origin
 
 
 mysql = MySQL()
 app = Flask(__name__)
+CORS(app)
 
 # MySQL configurations
 app.config['MYSQL_DATABASE_USER'] = 'root'
@@ -208,7 +209,7 @@ class Mood(Resource):
     def post(self):
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('timestamp', type=str, help='Timestamp address to create mood')
+            parser.add_argument('timestamp', type=int, help='Timestamp address to create mood')
             parser.add_argument('label', type=str, help='Label to create mood')
             parser.add_argument('value', type=str, help='Value to create mood')
             parser.add_argument('user_id', type=str, help='User Id to create mood')
@@ -236,8 +237,8 @@ class Mood(Resource):
     def get(self):
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('start_date', type=str, help='Start timestamp address to get mood')
-            parser.add_argument('end_date', type=str, help='End timestamp to get mood')
+            parser.add_argument('start_date', type=int, help='Start timestamp address to get mood')
+            parser.add_argument('end_date', type=int, help='End timestamp to get mood')
             parser.add_argument('team_id', type=int, help='Team Id to get mood')
             parser.add_argument('user_id', type=int, help='User Id to get mood')
             args = parser.parse_args()
@@ -273,7 +274,7 @@ class Mood(Resource):
                           }
                         ]
             if len(users) == 0:
-                return {'StatusCode': '1000', 'Message': 'Not user found'}
+                return []
             moods = []
             for user in users:
                 cursor.callproc('spGetMoods', (_moodStartDate, _moodEndDate, user['id']))
@@ -296,7 +297,7 @@ class Mood(Resource):
     def put(self):
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('timestamp', type=str, help='Timestamp address to update mood')
+            parser.add_argument('timestamp', type=int, help='Timestamp address to update mood')
             parser.add_argument('label', type=str, help='Label to update mood')
             parser.add_argument('value', type=str, help='Value to update mood')
             parser.add_argument('user_id', type=str, help='User Id to update mood')
@@ -343,8 +344,8 @@ class Analysis(Resource):
     def get(self):
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('start_date', type=str, help='Start timestamp address to get mood')
-            parser.add_argument('end_date', type=str, help='End timestamp to get mood')
+            parser.add_argument('start_date', type=int, help='Start timestamp address to get mood')
+            parser.add_argument('end_date', type=int, help='End timestamp to get mood')
             parser.add_argument('team_id', type=int, help='Team Id to get mood')
             parser.add_argument('user_id', type=int, help='User Id to get mood')
             args = parser.parse_args()
