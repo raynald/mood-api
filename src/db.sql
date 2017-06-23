@@ -27,7 +27,7 @@ PRIMARY KEY (`Id`));
 
 CREATE TABLE IF NOT EXISTS `tblMood` (
   `Id` INT NOT NULL AUTO_INCREMENT,
-  `Timestamp` VARCHAR(45) NOT NULL,
+  `Timestamp` INT(20) NOT NULL,
   `Label` VARCHAR(45) NOT NULL,
   `Value` INT NOT NULL,
   `User_Id` INT NOT NULL,

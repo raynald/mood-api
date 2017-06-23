@@ -283,7 +283,7 @@ class Mood(Resource):
                     moods += [
                     {
                         'user': user,
-                        'timestamp': str(mood[1]),
+                        'timestamp': mood[1],
                         'label': mood[2],
                         'value': mood[3]
                     }
