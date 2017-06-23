@@ -56,19 +56,24 @@ GET: /moods/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<in
 Provide either team_id or user_id.
 ```
 [{
-    user_id: <int>,
-    name: <string>,
-    dates: [{
-        id: <int>,
-        timestamp: <timestamp>,
-        label: <string> (emoji),
-        value: <int>,    
-    }, {
-        ...
-    }]
+    user: {
+        id: <int>,
+        name: <string>,
+    },
+    timestamp: <timestamp>,
+    label: <string> (emoji),
+    value: <int>,    
 },{
-    ...
-}]
+    user: {
+        id: <int>,
+        name: <string>,
+    },
+    timestamp: <timestamp>,
+    label: <string> (emoji),
+    value: <int>,    
+},
+...
+]
 ```
 
 GET Average
