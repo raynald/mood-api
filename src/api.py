@@ -251,16 +251,16 @@ class Mood(Resource):
             cursor = conn.cursor()
             users = []
             if _moodTeamId:
-                print _moodTeamId
                 cursor.callproc('spGetUsersPerTeam', (_moodTeamId,))
                 data = cursor.fetchall()
                 for user in data:
-                    users += [
-                        {
-                          'user_id': user[0],
-                          'name': user[1]
-                        }
-                    ]
+                    if not _moodUserId or user[0] == _moodUserId:
+                        users += [
+                            {
+                              'id': user[0],
+                              'name': user[1]
+                            }
+                        ]
             else:
                 if _moodUserId:
                     cursor.callproc('spGetUser', (_moodUserId,))
@@ -268,27 +268,26 @@ class Mood(Resource):
                     for user in data:
                         users += [
                           {
-                            'user_id': user[0],
+                            'id': user[0],
                             'name': user[1]
                           }
                         ]
-                else:
-                    return {'StatusCode': '1000', 'Message': 'Please specify team_id or user_id'}
+            if len(users) == 0:
+                return {'StatusCode': '1000', 'Message': 'Not user found'}
+            moods = []
             for user in users:
-                cursor.callproc('spGetMoods', (_moodStartDate, _moodEndDate, user['user_id']))
+                cursor.callproc('spGetMoods', (_moodStartDate, _moodEndDate, user['id']))
                 data = cursor.fetchall()
-                moods = []
                 for mood in data:
                     moods += [
                     {
-                        'id': mood[0],
+                        'user': user,
                         'timestamp': str(mood[1]),
                         'label': mood[2],
                         'value': mood[3]
                     }
                 ]
-                user['mood'] = moods
-            return users
+            return moods
 
         except Exception as e:
             return {'error': str(e)}
@@ -359,16 +358,16 @@ class Analysis(Resource):
             cursor = conn.cursor()
             users = []
             if _moodTeamId:
-                print _moodTeamId
                 cursor.callproc('spGetUsersPerTeam', (_moodTeamId,))
                 data = cursor.fetchall()
                 for user in data:
-                    users += [
-                        {
-                            'user_id': user[0],
-                            'name': user[1]
-                        }
-                    ]
+                    if not _moodUserId or user[0] == _moodUserId:
+                        users += [
+                            {
+                                'id': user[0],
+                                'name': user[1]
+                            }
+                        ]
             else:
                 if _moodUserId:
                     cursor.callproc('spGetUser', (_moodUserId,))
@@ -380,23 +379,28 @@ class Analysis(Resource):
                                 'name': user[1]
                             }
                         ]
-                else:
-                    return {'StatusCode': '1000', 'Message': 'Please specify team_id or user_id'}
+            if len(users) == 0:
+                return {'StatusCode': '1000', 'Message': 'Not user found'}
             total_average = 0
+            ans = []
             for user in users:
-                cursor.callproc('spGetMoods', (_moodStartDate, _moodEndDate, user['user_id']))
+                cursor.callproc('spGetMoods', (_moodStartDate, _moodEndDate, user['id']))
                 data = cursor.fetchall()
                 average = 0
                 for mood in data:
                     average += mood[3]
                 if len(data) > 0:
                     average /= 1.0 * len(data)
-                user['average'] = average
+                ans += [
+                    {
+                        'average': average,
+                        'user': user
+                    }]
                 total_average += average
             if len(users):
                 total_average /= 1.0 * len(users)
-            users += [ total_average ]
-            return users
+            ans += [ total_average ]
+            return ans
         except Exception as e:
             return {'error': str(e)}
 

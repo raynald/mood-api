@@ -58,7 +58,7 @@ Provide either team_id or user_id.
 [{
     user: {
         id: <int>,
-        name: <string>,
+        name: <string>
     },
     timestamp: <timestamp>,
     label: <string> (emoji),
@@ -81,8 +81,10 @@ GET: /average/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<
 Provide either team_id or user_id.
 ```
 [{
-    user_id: <int>,
-    name: <string>,
+    user: {
+        id: <int>,
+        name: <string>
+    },
     average: <float>
 },{
     ...
