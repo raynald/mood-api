@@ -405,12 +405,30 @@ class Analysis(Resource):
         except Exception as e:
             return {'error': str(e)}
 
+
+class TeamUsers(Resource):
+    def get(self, team_id):
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        cursor.callproc('spGetUsersPerTeam', (team_id,))
+        data = cursor.fetchall()
+        users = []
+        for user in data:
+            users += [
+                {
+                    'id': user[0],
+                    'name': user[1]
+                }
+            ]
+        return users
+
 api.add_resource(User, '/users')
-api.add_resource(DeleteUser, '/user/<string:user_id>')
+api.add_resource(DeleteUser, '/users/<string:user_id>')
 api.add_resource(Team, '/teams')
-api.add_resource(DeleteTeam, '/user/<string:team_id>')
+api.add_resource(DeleteTeam, '/teams/<string:team_id>')
+api.add_resource(TeamUsers, '/teams/<string:team_id>/users')
 api.add_resource(Mood, '/moods')
-api.add_resource(DeleteMood, '/user/<string:mood_id>')
+api.add_resource(DeleteMood, '/moods/<string:mood_id>')
 api.add_resource(Analysis, '/average')
 
 if __name__ == '__main__':
