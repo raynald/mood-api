@@ -50,9 +50,14 @@ class User(Resource):
 
     def get(self):
         try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('slug', type=str, help='Slug to get user')
+            args = parser.parse_args()
+            _userSlug = args['slug']
+
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('spGetUsers')
+            cursor.callproc('spGetUsers', (_userSlug,))
             data = cursor.fetchall()
 
             res = []
@@ -215,14 +220,15 @@ class Mood(Resource):
             parser.add_argument('user_id', type=str, help='User Id to create mood')
             args = parser.parse_args()
 
-            _moodDescriptoin = args['timestamp']
+            _moodTimestamp = args['timestamp']
             _moodLabel = args['label']
             _moodValue = args['value']
             _moodUserId = args['user_id']
 
+            print _moodTimestamp
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('spCreateMood',(_moodDescriptoin, _moodLabel, _moodValue, _moodUserId))
+            cursor.callproc('spCreateMood',(_moodTimestamp, _moodLabel, _moodValue, _moodUserId))
             data = cursor.fetchall()
 
             if len(data) is 0:
@@ -232,7 +238,7 @@ class Mood(Resource):
                 return {'StatusCode':'1000','Message': str(data[0])}
 
         except Exception as e:
-            return {'error': str(e)}
+            return {'StatusCode': '1000', 'Message': str(e)}
 
     def get(self):
         try:
@@ -270,7 +276,7 @@ class Mood(Resource):
                         users += [
                           {
                             'id': user[0],
-                            'name': user[1]
+                            'name': user[1],
                           }
                         ]
             if len(users) == 0:
@@ -300,17 +306,17 @@ class Mood(Resource):
             parser.add_argument('timestamp', type=int, help='Timestamp address to update mood')
             parser.add_argument('label', type=str, help='Label to update mood')
             parser.add_argument('value', type=str, help='Value to update mood')
-            parser.add_argument('user_id', type=str, help='User Id to update mood')
+            parser.add_argument('user_slug', type=str, help='User Slug to update mood')
             args = parser.parse_args()
 
             _moodDescriptoin = args['timestamp']
             _moodLabel = args['label']
             _moodValue = args['value']
-            _moodUserId = args['user_id']
+            _moodUserSlug = args['user_slug']
 
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('spUpdateMood',(_moodDescriptoin, _moodLabel, _moodValue, _moodUserId))
+            cursor.callproc('spUpdateMood',(_moodDescriptoin, _moodLabel, _moodValue, _moodUserSlug))
             data = cursor.fetchall()
 
             if len(data) is 0:
@@ -324,11 +330,11 @@ class Mood(Resource):
 
 
 class DeleteMood(Resource):
-    def delete(self, user_id):
+    def delete(self, mood_id):
         try:
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('spDeleteMood',(user_id))
+            cursor.callproc('spDeleteMood',(mood_id))
             data = cursor.fetchall()
             if len(data) is 0:
                 conn.commit()
@@ -376,7 +382,7 @@ class Analysis(Resource):
                     for user in data:
                         users += [
                             {
-                                'user_id': user[0],
+                                'id': user[0],
                                 'name': user[1]
                             }
                         ]
@@ -423,7 +429,7 @@ class TeamUsers(Resource):
         return users
 
 api.add_resource(User, '/users')
-api.add_resource(DeleteUser, '/users/<string:user_id>')
+api.add_resource(DeleteUser, '/users/<string:user_slug>')
 api.add_resource(Team, '/teams')
 api.add_resource(DeleteTeam, '/teams/<string:team_id>')
 api.add_resource(TeamUsers, '/teams/<string:team_id>/users')

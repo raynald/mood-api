@@ -134,9 +134,15 @@ DROP procedure IF EXISTS `spGetUsers`;
 
 DELIMITER $$
 USE `MoodDb`$$
-CREATE PROCEDURE `spGetUsers` ()
+CREATE PROCEDURE `spGetUsers` (
+  IN p_slug VARCHAR(45)
+)
   BEGIN
-    SELECT Id, Name, Slug, Email FROM tblUser;
+    IF p_slug IS NULL THEN
+      SELECT Id, Name, Slug, Email FROM tblUser LIMIT 20;
+    ELSE
+      SELECT Id, Name, Slug, Email FROM tblUser where Slug = p_slug;
+    END IF;
   END$$
 
 DELIMITER ;
@@ -297,13 +303,11 @@ CREATE PROCEDURE `spUpdateMood` (
   IN p_user_id INT
 )
 BEGIN
-  if ( select exists (select 1 from tblMood where Id = p_id) ) THEN
+  if ( select exists (select 1 from tblMood where Timestamp = p_timestamp and User_Id = p_user_id) ) THEN
     UPDATE tblMood SET
-      Timestamp = p_timestamp,
       Label = p_label,
-      Value = p_value,
-      User_Id = p_user_id
-    WHERE Id = p_id;
+      Value = p_value
+    WHERE Timestamp = p_timestamp AND User_Id = p_user_id;
   ELSE
     SELECT 'Mood does not exist !!';
   END IF;
