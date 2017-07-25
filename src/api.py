@@ -27,7 +27,7 @@ class User(Resource):
             parser = reqparse.RequestParser()
             parser.add_argument('email', type=str, help='Email address to create user')
             parser.add_argument('slug', type=str, help='Slug to create user')
-            parser.add_argument('name', type=str, help='Name to create user')
+            parser.add_argument('name', type=unicode, help='Name to create user')
             args = parser.parse_args()
 
             _userEmail = args['email']
@@ -79,7 +79,7 @@ class User(Resource):
             parser = reqparse.RequestParser()
             parser.add_argument('email', type=str, help='Email address to create user')
             parser.add_argument('slug', type=str, help='Slug to create user')
-            parser.add_argument('name', type=str, help='Name to create user')
+            parser.add_argument('name', type=unicode, help='Name to create user')
             args = parser.parse_args()
 
             _userEmail = args['email']
@@ -124,7 +124,7 @@ class Team(Resource):
             parser = reqparse.RequestParser()
             parser.add_argument('description', type=str, help='Description address to create team')
             parser.add_argument('slug', type=str, help='Slug to create team')
-            parser.add_argument('name', type=str, help='Name to create team')
+            parser.add_argument('name', type=unicode, help='Name to create team')
             args = parser.parse_args()
 
             _userdescription = args['description']
@@ -171,7 +171,7 @@ class Team(Resource):
             parser = reqparse.RequestParser()
             parser.add_argument('description', type=str, help='Description address to create user')
             parser.add_argument('slug', type=str, help='Slug to create user')
-            parser.add_argument('name', type=str, help='Name to create user')
+            parser.add_argument('name', type=unicode, help='Name to create user')
             args = parser.parse_args()
 
             _userdescription = args['description']
