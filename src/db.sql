@@ -62,7 +62,7 @@ DROP procedure IF EXISTS `spCreateUser`;
 DELIMITER $$
 USE `MoodDb`$$
 CREATE PROCEDURE `spCreateUser` (
-IN p_name varchar(50),
+IN p_name varchar(50) CHARSET utf8,
 IN p_slug varchar(50),
 IN p_email varchar(50)
 )
@@ -95,7 +95,7 @@ DROP PROCEDURE IF EXISTS `spUpdateUser`;
 DELIMITER $$
 USE `MoodDb` $$
 CREATE PROCEDURE `spUpdateUser` (
-  IN p_name varchar(50),
+  IN p_name varchar(50) CHARSET utf8,
   IN p_slug varchar(50),
   IN p_email varchar(50)
 )
@@ -171,7 +171,7 @@ DROP procedure IF EXISTS `spCreateTeam`;
 DELIMITER $$
 USE `MoodDb`$$
 CREATE PROCEDURE `spCreateTeam` (
-  IN p_name varchar(50),
+  IN p_name varchar(50) CHARSET utf8,
   IN p_slug varchar(50),
   IN p_description varchar(50)
 )
@@ -206,7 +206,7 @@ DROP PROCEDURE IF EXISTS `spUpdateTeam`;
 DELIMITER $$
 USE `MoodDb` $$
 CREATE PROCEDURE `spUpdateTeam` (
-  IN p_name varchar(50),
+  IN p_name varchar(50) CHARSET utf8,
   IN p_slug varchar(50),
   IN p_description varchar(50)
 )

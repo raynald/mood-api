@@ -169,9 +169,9 @@ class Team(Resource):
     def put(self):
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('description', type=str, help='Description address to create user')
-            parser.add_argument('slug', type=str, help='Slug to create user')
-            parser.add_argument('name', type=unicode, help='Name to create user')
+            parser.add_argument('description', type=str, help='Description address to create team')
+            parser.add_argument('slug', type=str, help='Slug to create team')
+            parser.add_argument('name', type=unicode, help='Name to create team')
             args = parser.parse_args()
 
             _userdescription = args['description']
