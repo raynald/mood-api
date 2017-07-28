@@ -52,6 +52,15 @@ POST/PUT: /users/ (Create a new person)
 DELETE: /user/{id}  
 (Return status 200 or error status code + message)
 
+POST/DELETE: /memberships (Create/Delete a team user relationship)
+(Return status 200 or error status code + message)
+```
+{
+    team_id: <int>,
+    user_id: <int>
+}
+```
+
 GET: /moods/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<int>
 Provide either team_id or user_id.
 ```

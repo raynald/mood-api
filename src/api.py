@@ -166,21 +166,23 @@ class Team(Resource):
         except Exception as e:
             return {'error': str(e)}
 
-    def put(self):
+    def put(self, team_id):
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('description', type=str, help='Description address to create team')
-            parser.add_argument('slug', type=str, help='Slug to create team')
-            parser.add_argument('name', type=unicode, help='Name to create team')
+            parser.add_argument('id', type=unicode, help="Team id to update team")
+            parser.add_argument('description', type=str, help='Description address to update team')
+            parser.add_argument('slug', type=str, help='Slug to update team')
+            parser.add_argument('name', type=unicode, help='Name to update team')
             args = parser.parse_args()
 
+            _userId = args['id']
             _userdescription = args['description']
             _userSlug = args['slug']
             _userName = args['name']
 
             conn = mysql.connect()
             cursor = conn.cursor()
-            cursor.callproc('spUpdateTeam',(_userName, _userSlug, _userdescription))
+            cursor.callproc('spUpdateTeam',(_userId, _userName, _userSlug, _userdescription))
             data = cursor.fetchall()
 
             if len(data) is 0:
@@ -225,7 +227,6 @@ class Mood(Resource):
             _moodValue = args['value']
             _moodUserId = args['user_id']
 
-            print _moodTimestamp
             conn = mysql.connect()
             cursor = conn.cursor()
             cursor.callproc('spCreateMood',(_moodTimestamp, _moodLabel, _moodValue, _moodUserId))
@@ -428,6 +429,53 @@ class TeamUsers(Resource):
             ]
         return users
 
+
+class Membership(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('team_id', type=int, help='Team id to update the relationship')
+            parser.add_argument('user_id', type=int, help='User id to update the relationship')
+            args = parser.parse_args()
+
+            _teamId = args['team_id']
+            _userId = args['user_id']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('spCreateMembership', (_teamId, _userId,))
+            data = cursor.fetchall()
+            if len(data) is 0:
+                conn.commit()
+                return {'StatusCode':'200','Message': 'Membership creation success'}
+            else:
+                return {'StatusCode':'1000','Message': str(data[0])}
+        except Exception as e:
+            return {'error': str(e)}
+
+    def delete(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('team_id', type=int, help='Team id to update the relationship')
+            parser.add_argument('user_id', type=int, help='User id to update the relationship')
+            args = parser.parse_args()
+
+            _teamId = args['team_id']
+            _userId = args['user_id']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('spDeleteMembership', (_teamId, _userId,))
+            data = cursor.fetchall()
+            if len(data) is 0:
+                conn.commit()
+                return {'StatusCode':'200','Message': 'Membership deletion success'}
+            else:
+                return {'StatusCode':'1000','Message': str(data[0])}
+        except Exception as e:
+            return {'error': str(e)}
+
+
 api.add_resource(User, '/users')
 api.add_resource(DeleteUser, '/users/<string:user_slug>')
 api.add_resource(Team, '/teams')
@@ -436,6 +484,7 @@ api.add_resource(TeamUsers, '/teams/<string:team_id>/users')
 api.add_resource(Mood, '/moods')
 api.add_resource(DeleteMood, '/moods/<string:mood_id>')
 api.add_resource(Analysis, '/average')
+api.add_resource(Membership, '/memberships')
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS MoodDb;
+CREATE DATABASE IF NOT EXISTS MoodDb DEFAULT CHARACTER SET utf8;
 
 USE `MoodDb`;
 CREATE TABLE IF NOT EXISTS `tblUser` (
@@ -206,17 +206,19 @@ DROP PROCEDURE IF EXISTS `spUpdateTeam`;
 DELIMITER $$
 USE `MoodDb` $$
 CREATE PROCEDURE `spUpdateTeam` (
+  IN p_id INT,
   IN p_name varchar(50) CHARSET utf8,
   IN p_slug varchar(50),
   IN p_description varchar(50)
 )
 BEGIN
 
-if ( select exists (select 1 from tblTeam where Description = p_description) ) THEN
+if ( select exists (select 1 from tblTeam where Id = p_id) ) THEN
   UPDATE tblTeam SET
     Name = p_name,
-    Slug = p_slug
-  WHERE Description = p_description;
+    Slug = p_slug,
+    Description = p_description
+  WHERE Id = p_id;
 ELSE
   SELECT 'Team does not exist !!';
 END IF;
@@ -358,5 +360,35 @@ CREATE PROCEDURE `spGetUsersPerTeam` (
   BEGIN
     SELECT Id, Name FROM tblUser A, User_Team_Map B WHERE B.User_Id = A.Id AND B.Team_Id = p_team_id;
   END$$
+
+DELIMITER ;
+
+# Add a user to a team
+DROP procedure IF EXISTS `spCreateMembership`;
+
+DELIMITER $$
+USE `MoodDb`$$
+CREATE PROCEDURE `spCreateMembership` (
+  IN p_team_id INT,
+  IN p_user_id INT
+)
+  BEGIN
+    INSERT INTO User_Team_Map (Team_Id, User_Id) VALUES (p_team_id, p_user_id);
+  END $$
+
+DELIMITER ;
+
+# Delete a user to a team
+DROP procedure IF EXISTS `spDeleteMembership`;
+
+DELIMITER $$
+USE `MoodDb`$$
+CREATE PROCEDURE `spDeleteMembership` (
+  IN p_team_id INT,
+  IN p_user_id INT
+)
+  BEGIN
+    DELETE FROM User_Team_Map WHERE Team_Id = p_team_id AND User_Id = p_user_id;
+  END $$
 
 DELIMITER ;
