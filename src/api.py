@@ -391,6 +391,7 @@ class Analysis(Resource):
                 return {'StatusCode': '1000', 'Message': 'Not user found'}
             total_average = 0
             ans = []
+            active_users = 0
             for user in users:
                 cursor.callproc('spGetMoods', (_moodStartDate, _moodEndDate, user['id']))
                 data = cursor.fetchall()
@@ -404,9 +405,11 @@ class Analysis(Resource):
                         'average': average,
                         'user': user
                     }]
-                total_average += average
-            if len(users):
-                total_average /= 1.0 * len(users)
+                if average > 0:
+                    total_average += average
+                    active_users += 1
+            if active_users > 0:
+                total_average /= 1.0 * active_users
             ans += [ total_average ]
             return ans
         except Exception as e:
