@@ -1,9 +1,11 @@
-from flask import Flask
+from flask import Flask, render_template, abort
 from flask_restful import Resource, Api
 from flask_restful import reqparse
 from flaskext.mysql import MySQL
 from flask_cors import CORS, cross_origin
-
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask_sqlalchemy import SQLAlchemy
 
 mysql = MySQL()
 app = Flask(__name__)
@@ -14,14 +16,57 @@ app.config['MYSQL_DATABASE_USER'] = 'root'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'pwd'
 app.config['MYSQL_DATABASE_DB'] = 'MoodDb'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:pwd@0.0.0.0:3306/MoodDb'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SECRET_KEY'] = 'MoodService'
 
 mysql.init_app(app)
 
 api = Api(app)
 
+admin = Admin(app, name='MoodAdmin', template_mode='bootstrap3')
+db = SQLAlchemy(app)
 
-class User(Resource):
+user_team_map = db.Table('User_Team_Map',
+                         db.Column('User_Id', db.Integer, db.ForeignKey('tblUser.Id')),
+                         db.Column('Team_Id', db.Integer, db.ForeignKey('tblTeam.Id'))
+                         )
+
+class Team(db.Model):
+    __tablename__ = 'tblTeam'
+    id = db.Column("Id", db.Integer, nullable=False, primary_key=True, autoincrement=True)
+    name = db.Column("Name", db.String(45), nullable=False)
+    slug = db.Column("Slug", db.String(45), nullable=True)
+    description = db.Column("Description", db.String(45), nullable=False)
+    users = db.relationship('User', secondary=user_team_map,
+        primaryjoin=id==user_team_map.c.Team_Id,
+        backref=db.backref('teams', lazy='dynamic')
+    )
+    def __repr__(self):
+        return '<Team %s>' % self.name
+
+class User(db.Model):
+    __tablename__ = 'tblUser'
+    id = db.Column("Id", db.Integer, nullable=False, primary_key=True, autoincrement=True)
+    name = db.Column("Name", db.String(45), nullable=False)
+    slug = db.Column("Slug", db.String(45), nullable=True)
+    email = db.Column("Email", db.String(45), nullable=False)
+    def __repr__(self):
+        return '<User %s>' % self.name
+
+class Mood(db.Model):
+    __tablename__ = 'tblMood'
+    id = db.Column("Id", db.Integer, nullable=False, primary_key=True, autoincrement=True)
+    timestamp = db.Column("Timestamp", db.String(20), nullable=False)
+    label = db.Column("Label", db.String(45), nullable=False)
+    value = db.Column("Value", db.Integer, nullable=False)
+    user_id = db.Column("User_Id", db.Integer, db.ForeignKey('tblUser.Id'), nullable=False)
+    user = db.relationship('User')
+    def __repr__(self):
+        return '<Mood %s>' % self.label
+
+
+class Users(Resource):
     def post(self):
         try:
             parser = reqparse.RequestParser()
@@ -118,7 +163,7 @@ class DeleteUser(Resource):
             return {'error': str(e)}
 
 
-class Team(Resource):
+class Teams(Resource):
     def post(self):
         try:
             parser = reqparse.RequestParser()
@@ -212,7 +257,7 @@ class DeleteTeam(Resource):
             return {'error': str(e)}
 
 
-class Mood(Resource):
+class Moods(Resource):
     def post(self):
         try:
             parser = reqparse.RequestParser()
@@ -479,15 +524,19 @@ class Membership(Resource):
             return {'error': str(e)}
 
 
-api.add_resource(User, '/users')
+api.add_resource(Users, '/users')
 api.add_resource(DeleteUser, '/users/<string:user_slug>')
-api.add_resource(Team, '/teams')
+api.add_resource(Teams, '/teams')
 api.add_resource(DeleteTeam, '/teams/<string:team_id>')
 api.add_resource(TeamUsers, '/teams/<string:team_id>/users')
-api.add_resource(Mood, '/moods')
+api.add_resource(Moods, '/moods')
 api.add_resource(DeleteMood, '/moods/<string:mood_id>')
 api.add_resource(Analysis, '/average')
 api.add_resource(Membership, '/memberships')
+
+admin.add_view(ModelView(Team, db.session))
+admin.add_view(ModelView(User, db.session))
+admin.add_view(ModelView(Mood, db.session))
 
 if __name__ == '__main__':
     app.run(debug=True)

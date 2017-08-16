@@ -2,4 +2,7 @@ flask-restful
 flask-mysql
 slackclient
 flask-cors
+flask_admin
 requests
+sqlalchemy
+mysqlclient
