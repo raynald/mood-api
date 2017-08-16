@@ -1,4 +1,4 @@
-from flask import Flask, render_template, abort
+from flask import Flask
 from flask_restful import Resource, Api
 from flask_restful import reqparse
 from flaskext.mysql import MySQL
