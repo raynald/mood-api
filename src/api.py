@@ -65,6 +65,16 @@ class Mood(db.Model):
     def __repr__(self):
         return '<Mood %s>' % self.label
 
+class Snippet(db.Model):
+    __tablename__ = 'tblSnippet'
+    id = db.Column("Id", db.Integer, nullable=False, primary_key=True, autoincrement=True)
+    timestamp = db.Column("Timestamp", db.String(20), nullable=False)
+    content = db.Column("Content", db.String(1000), nullable=False)
+    user_id = db.Column("User_Id", db.Integer, db.ForeignKey('tblUser.Id'), nullable=False)
+    user = db.relationship('User')
+    def __repr__(self):
+        return '<Snippet %s>' % (self.content[:25] + '..') if len(self.content) > 25 else self.content
+
 
 class Users(Resource):
     def post(self):
@@ -392,6 +402,136 @@ class DeleteMood(Resource):
             return {'error': str(e)}
 
 
+class Snippets(Resource):
+    def post(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('timestamp', type=int, help='Timestamp address to create snippet')
+            parser.add_argument('content', type=str, help='Content of the snippet')
+            parser.add_argument('user_id', type=str, help='User Id to create snippet')
+            args = parser.parse_args()
+
+            _snippetTimestamp = args['timestamp']
+            _snippetContent = args['content']
+            _snippetUserId = args['user_id']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('spCreateSnippet',(_snippetTimestamp, _snippetContent, _snippetUserId))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+                return {'StatusCode':'200','Message': 'Snippet creation success'}
+            else:
+                return {'StatusCode':'1000','Message': str(data[0])}
+
+        except Exception as e:
+            return {'StatusCode': '1000', 'Message': str(e)}
+
+    def get(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('start_date', type=int, help='Start timestamp address to get snippet')
+            parser.add_argument('end_date', type=int, help='End timestamp to get snippet')
+            parser.add_argument('team_id', type=int, help='Team Id to get snippet')
+            parser.add_argument('user_id', type=int, help='User Id to get snippet')
+            args = parser.parse_args()
+
+            _snippetStartDate = args['start_date']
+            _snippetEndDate = args['end_date']
+            _snippetTeamId = args['team_id']
+            _snippetUserId = args['user_id']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            users = []
+            if _snippetTeamId:
+                cursor.callproc('spGetUsersPerTeam', (_snippetTeamId,))
+                data = cursor.fetchall()
+                for user in data:
+                    if not _snippetUserId or user[0] == _snippetUserId:
+                        users += [
+                            {
+                                'id': user[0],
+                                'name': user[1]
+                            }
+                        ]
+            else:
+                if _snippetUserId:
+                    cursor.callproc('spGetUser', (_snippetUserId,))
+                    data = cursor.fetchall()
+                    for user in data:
+                        users += [
+                            {
+                                'id': user[0],
+                                'name': user[1],
+                            }
+                        ]
+            if len(users) == 0:
+                return []
+            snippets = []
+            for user in users:
+                cursor.callproc('spGetSnippets', (_snippetStartDate, _snippetEndDate, user['id']))
+                data = cursor.fetchall()
+                for snippet in data:
+                    snippets += [
+                        {
+                            'user': user,
+                            'timestamp': snippet[1],
+                            'content': snippet[2]
+                        }
+                    ]
+            return snippets
+
+        except Exception as e:
+            return {'error': str(e)}
+
+
+    def put(self):
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('timestamp', type=int, help='Timestamp address to update snippet')
+            parser.add_argument('content', type=str, help='Content of the snippet')
+            parser.add_argument('user_slug', type=str, help='User Slug to update snippet')
+            args = parser.parse_args()
+
+            _snippetTimestamp = args['timestamp']
+            _snippetContent = args['content']
+            _snippetUserSlug = args['user_slug']
+
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('spUpdateSnippet',(_snippetTimestamp, _snippetContent, _snippetUserSlug))
+            data = cursor.fetchall()
+
+            if len(data) is 0:
+                conn.commit()
+                return {'StatusCode':'200','Message': 'Snippet update success'}
+            else:
+                return {'StatusCode':'1000','Message': str(data[0])}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+
+class DeleteSnippet(Resource):
+    def delete(self, snippet_id):
+        try:
+            conn = mysql.connect()
+            cursor = conn.cursor()
+            cursor.callproc('spDeleteSnippet',(snippet_id))
+            data = cursor.fetchall()
+            if len(data) is 0:
+                conn.commit()
+                return {'StatusCode':'200','Message': 'Snippet delete success'}
+            else:
+                return {'StatusCode':'1000','Message': str(data[0])}
+
+        except Exception as e:
+            return {'error': str(e)}
+
+
 class Analysis(Resource):
     def get(self):
         try:
@@ -531,12 +671,15 @@ api.add_resource(DeleteTeam, '/teams/<string:team_id>')
 api.add_resource(TeamUsers, '/teams/<string:team_id>/users')
 api.add_resource(Moods, '/moods')
 api.add_resource(DeleteMood, '/moods/<string:mood_id>')
+api.add_resource(Snippets, '/snippets')
+api.add_resource(DeleteSnippet, '/snippets/<string:snippet_id>')
 api.add_resource(Analysis, '/average')
 api.add_resource(Membership, '/memberships')
 
 admin.add_view(ModelView(Team, db.session))
 admin.add_view(ModelView(User, db.session))
 admin.add_view(ModelView(Mood, db.session))
+admin.add_view(ModelView(Snippet, db.session))
 
 if __name__ == '__main__':
     app.run(debug=True)

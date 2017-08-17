@@ -41,6 +41,21 @@ CONSTRAINT user_pk FOREIGN KEY (`User_Id`)
   ON UPDATE CASCADE ON DELETE RESTRICT );
 
 
+CREATE TABLE IF NOT EXISTS `tblSnippet` (
+  `Id` INT NOT NULL AUTO_INCREMENT,
+  `Timestamp` INT(20) NOT NULL,
+  `Content` VARCHAR(1000) NOT NULL,
+  `User_Id` INT NOT NULL,
+  `CREATED_ON` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `CREATED_BY` INT NULL,
+  `MODIFIED_ON` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `MODIFIED_BY` INT NULL,
+CONSTRAINT snippet_pk PRIMARY KEY (`Id`),
+CONSTRAINT user_id FOREIGN KEY (`User_Id`)
+  REFERENCES tblUser (Id)
+  ON UPdATE CASCADE ON DELETE RESTRICT );
+
+
 # Team User Map
 
 CREATE TABLE IF NOT EXISTS `User_Team_Map` (
@@ -348,6 +363,95 @@ CREATE PROCEDURE `spDeleteMood` (
   END$$
 
 DELIMITER ;
+
+
+# Create Snippet
+
+DROP procedure IF EXISTS `spCreateSnippet`;
+
+DELIMITER $$
+USE `MoodDb`$$
+CREATE PROCEDURE `spCreateSnippet` (
+  IN p_timestamp INT,
+  IN p_content VARCHAR(1000),
+  IN p_user_id INT
+)
+  BEGIN
+
+    if ( select exists (select 1 from tblSnippet where Timestamp = p_timestamp and User_Id = p_user_id) ) THEN
+      SELECT 'Snippet exists !!';
+    ELSE
+      insert into tblSnippet
+      (
+        Timestamp,
+        Content,
+        User_Id
+      )
+      values
+        (
+          p_timestamp,
+          p_content,
+          p_user_id
+        );
+    END IF;
+  END$$
+DELIMITER ;
+
+# Update Snippet
+
+DROP PROCEDURE IF EXISTS `spUpdateSnippet`;
+DELIMITER $$
+USE `MoodDb` $$
+CREATE PROCEDURE `spUpdateSnippet` (
+  IN p_id INT,
+  IN p_timestamp INT,
+  IN p_content VARCHAR(1000),
+  IN p_user_id INT
+)
+  BEGIN
+    if ( select exists (select 1 from tblSnippet where Timestamp = p_timestamp and User_Id = p_user_id) ) THEN
+      UPDATE tblSnippet SET
+        Content = p_content
+      WHERE Timestamp = p_timestamp AND User_Id = p_user_id;
+    ELSE
+      SELECT 'Snippet does not exist !!';
+    END IF;
+  END$$
+DELIMITER ;
+
+# Get Snippets
+
+DROP procedure IF EXISTS `spGetSnippets`;
+
+DELIMITER $$
+USE `MoodDb`$$
+CREATE PROCEDURE `spGetSnippets` (
+  IN p_start INT,
+  IN p_end INT,
+  IN p_user_id INT
+)
+  BEGIN
+    SELECT Id, Timestamp, Content FROM tblSnippet
+    WHERE User_Id = p_user_id AND Timestamp >= p_start AND Timestamp <= p_end;
+  END$$
+
+DELIMITER ;
+
+# Delete Snippet
+
+DROP procedure IF EXISTS `spDeleteSnippet`;
+
+DELIMITER $$
+USE `MoodDb`$$
+CREATE PROCEDURE `spDeleteSnippet` (
+  IN p_id INT
+)
+  BEGIN
+    DELETE FROM tblSnippet WHERE Id = p_id;
+  END$$
+
+DELIMITER ;
+
 
 # Get Users per team
 DROP procedure IF EXISTS `spGetUsersPerTeam`;
