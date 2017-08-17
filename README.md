@@ -2,6 +2,7 @@
 
 ### Endpoints
 
+#### Team
 GET: /teams/ 
 ```
 [{
@@ -39,6 +40,7 @@ GET: /users/
 ]}
 ```
 
+#### User
 POST/PUT: /users/ (Create a new person)  
 ```
 {
@@ -61,6 +63,7 @@ POST/DELETE: /memberships (Create/Delete a team user relationship)
 }
 ```
 
+#### Mood
 GET: /moods/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<int>
 Provide either team_id or user_id.
 ```
@@ -102,7 +105,28 @@ Provide either team_id or user_id.
 ]
 ```
 
-
+#### Snippet
+GET: /snippets/?{start_date}=<date>&{end_date}=<date>&{team_id}=<int>&{user_id}=<int>
+Provide either team_id or user_id.
+```
+[{
+    user: {
+        id: <int>,
+        name: <string>
+    },
+    timestamp: <timestamp>,
+    content: <string> (description of feeling)
+},{
+    user: {
+        id: <int>,
+        name: <string>,
+    },
+    timestamp: <timestamp>,
+    content: <string> (description of feeling)
+},
+...
+]
+```
 
 ### Models
 
@@ -141,6 +165,20 @@ Provide either team_id or user_id.
     timestamp: <timestamp>,
     label: <string> (emoji),
     value: <int>,
+    user_id: <int>,
+    created_on: <date time>,
+    created_by: <int> (user id),
+    modified_on: <date time>,
+    modified_by: <int> (user id),
+}
+```
+
+#### Snippet
+```
+{
+    id: <int>,
+    timestamp: <timestamp>,
+    content: <string> (description of feeling),
     user_id: <int>,
     created_on: <date time>,
     created_by: <int> (user id),
