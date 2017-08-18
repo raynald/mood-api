@@ -407,7 +407,7 @@ class Snippets(Resource):
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('timestamp', type=int, help='Timestamp address to create snippet')
-            parser.add_argument('content', type=str, help='Content of the snippet')
+            parser.add_argument('content', type=unicode, help='Content of the snippet')
             parser.add_argument('user_id', type=str, help='User Id to create snippet')
             args = parser.parse_args()
 
