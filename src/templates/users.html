@@ -1,0 +1,14 @@
+<!doctype html>
+<title>Hello from Flask</title>
+<table>
+    <tr>
+        <th> Name </th>
+        <th> Email </th>
+    </tr>
+{% for user in users %}
+    <tr>
+        <th><a href="/d/u/{{user.id}}">{{ user.name }}</a></th>
+        <th>{{ user.email }}</th>
+    </tr>
+{% endfor %}
+</table>

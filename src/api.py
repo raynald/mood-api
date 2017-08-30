@@ -2,10 +2,11 @@ from flask import Flask
 from flask_restful import Resource, Api
 from flask_restful import reqparse
 from flaskext.mysql import MySQL
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
+from flask import render_template
 
 mysql = MySQL()
 app = Flask(__name__)
@@ -680,6 +681,23 @@ admin.add_view(ModelView(Team, db.session))
 admin.add_view(ModelView(User, db.session))
 admin.add_view(ModelView(Mood, db.session))
 admin.add_view(ModelView(Snippet, db.session))
+
+@app.route('/d')
+def show_teams():
+    teams = Team.query.all()
+    return render_template('teams.html', teams=teams)
+
+@app.route('/d/t/<string:team_id>')
+def show_users(team_id):
+    team = Team.query.get(team_id)
+    users = team.users
+    return render_template('users.html', users=users)
+
+@app.route('/d/u/<string:user_id>')
+def show_calendar(user_id):
+    user = User.query.get(user_id)
+    moods = Mood.query.filter_by(user=user)
+    return render_template('cal.html', user=user, moods=moods)
 
 if __name__ == '__main__':
     app.run(debug=True)

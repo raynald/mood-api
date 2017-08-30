@@ -1,0 +1,14 @@
+<!doctype html>
+<title>Hello from Flask</title>
+<table style="width:100%">
+    <tr>
+        <th> Team Name </th>
+        <th> Team Description </th>
+    </tr>
+{% for team in teams %}
+    <tr>
+        <th><a href="/d/t/{{team.id}}">{{ team.name }}</a></th>
+        <th>{{ team.description}}</th>
+    </tr>
+{% endfor %}
+</table>
