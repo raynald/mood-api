@@ -1,8 +1,5 @@
 flask-restful
-flask-mysql
-slackclient
 flask-cors
-flask_admin
-requests
-sqlalchemy
-mysqlclient
+flask-admin
+flask-sqlalchemy
+flask-mysql
