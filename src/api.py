@@ -691,7 +691,7 @@ def show_teams():
 def show_users(team_id):
     team = Team.query.get(team_id)
     users = team.users
-    return render_template('users.html', users=users)
+    return render_template('users.html', team=team, users=users)
 
 @app.route('/d/u/<string:user_id>')
 def show_calendar(user_id):
