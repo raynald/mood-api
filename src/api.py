@@ -758,10 +758,12 @@ def show_users(team_id):
     if req_year and req_week:
         year = int(req_year)
         week = int(req_week)
+        month = int(datetime.fromtimestamp(time.mktime(time.strptime('{} {} 1'.format(year,week), '%Y %W %w'))).strftime('%m'))
     else:
         today = datetime.today()
         year = today.year
         week = today.isocalendar()[1]
+        month = today.month
     start_date = int(time.mktime(time.strptime('{} {} 1'.format(year,week), '%Y %W %w'))) + 7200
     end_date = int(time.mktime(time.strptime('{} {} 0'.format(year,week), '%Y %W %w'))) + 7200
     dates = []
@@ -775,9 +777,9 @@ def show_users(team_id):
         moods = Mood.query.filter_by(user=user).filter(Mood.timestamp>=start_date).filter(Mood.timestamp<=end_date)
         for mood in moods:
             moodHash[user.id][mood.timestamp] = '<img width="12" height="12" src="%s">' % getEmoji(mood.label[1:-1])
-    year_, month_ = nextWeek(year, week)
-    _year, _month = lastWeek(year, week)
-    return render_template('users.html', team=team, users=users, dates=dates, moodHash=moodHash, _year=_year, _month=_month, year_=year_, month_=month_)
+    year_, week_ = nextWeek(year, week)
+    _year, _week = lastWeek(year, week)
+    return render_template('users.html', team=team, users=users, dates=dates, moodHash=moodHash, _year=_year, _week=_week, year_=year_, week_=week_, year=year, month=month)
 
 
 @app.route('/d/u/<string:user_id>')

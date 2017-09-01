@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>Team {{team.name}}</h2>
-<a href="/d/t/{{team.id}}?year={{_year}}&week={{_month}}"><span class="glyphicon glyphicon-chevron-left"></span></a>
-<a href="/d/t/{{team.id}}?year={{year_}}&week={{month_}}"><span class="glyphicon glyphicon-chevron-right"></span></a>
+<a href="/d/t/{{team.id}}?year={{_year}}&week={{_week}}"><span class="glyphicon glyphicon-chevron-left"></span></a>
+<a href="/d/t/{{team.id}}?year={{year_}}&week={{week_}}"><span class="glyphicon glyphicon-chevron-right"></span></a>
 <table class="table">
     <tr>
         <th> Name </th>
@@ -12,7 +12,7 @@
     </tr>
 {% for user in users %}
     <tr>
-        <th><a href="/d/u/{{user.id}}">{{ user.name }}</a></th>
+        <th><a href="/d/u/{{user.id}}?year={{year}}&month={{month}}">{{ user.name }}</a></th>
         {% for date in dates %}
             {% if moodHash[user.id][date.timestamp] %}
                 <th>{{ moodHash[user.id][date.timestamp]|safe }}</th>
