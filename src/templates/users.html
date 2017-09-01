@@ -1,14 +1,26 @@
-<!doctype html>
-<title>Hello from Flask</title>
-<table>
+{% extends 'base.html' %}
+{% block content %}
+<h2>Team {{team.name}}</h2>
+<a href="/d/t/{{team.id}}?year={{_year}}&week={{_month}}"><span class="glyphicon glyphicon-chevron-left"></span></a>
+<a href="/d/t/{{team.id}}?year={{year_}}&week={{month_}}"><span class="glyphicon glyphicon-chevron-right"></span></a>
+<table class="table">
     <tr>
         <th> Name </th>
-        <th> Email </th>
+        {% for date in dates %}
+        <th> {{ date.date }} </th>
+        {% endfor %}
     </tr>
 {% for user in users %}
     <tr>
         <th><a href="/d/u/{{user.id}}">{{ user.name }}</a></th>
-        <th>{{ user.email }}</th>
+        {% for date in dates %}
+            {% if moodHash[user.id][date.timestamp] %}
+                <th>{{ moodHash[user.id][date.timestamp]|safe }}</th>
+            {% else %}
+                <th></th>
+            {% endif %}
+        {% endfor %}
     </tr>
 {% endfor %}
 </table>
+{% endblock content %}

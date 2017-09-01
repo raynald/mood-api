@@ -1,6 +1,6 @@
-<!doctype html>
-<title>Hello from Flask</title>
-<table style="width:100%">
+{% extends 'base.html' %}
+{% block content %}
+<table class="table">
     <tr>
         <th> Team Name </th>
         <th> Team Description </th>
@@ -12,3 +12,4 @@
     </tr>
 {% endfor %}
 </table>
+{% endblock content %}
