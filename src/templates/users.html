@@ -15,7 +15,7 @@
         <th><a href="/d/u/{{user.id}}?year={{year}}&month={{month}}">{{ user.name }}</a></th>
         {% for date in dates %}
             {% if moodHash[user.id][date.timestamp] %}
-                <th>{{ moodHash[user.id][date.timestamp]|safe }}</th>
+                <th data-balloon="{{ moodHash[user.id][date.timestamp]['snip'] }}" data-baloon-pos="up">{{ moodHash[user.id][date.timestamp]['link']|safe }}</th>
             {% else %}
                 <th></th>
             {% endif %}

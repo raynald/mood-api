@@ -775,8 +775,18 @@ def show_users(team_id):
     for user in users:
         moodHash[user.id] = {}
         moods = Mood.query.filter_by(user=user).filter(Mood.timestamp>=start_date).filter(Mood.timestamp<=end_date)
+        snippets = Snippet.query.filter_by(user=user).filter(Mood.timestamp>=start_date).filter(Mood.timestamp<=end_date)
         for mood in moods:
-            moodHash[user.id][mood.timestamp] = '<img width="12" height="12" src="%s">' % getEmoji(mood.label[1:-1])
+            moodHash[user.id][mood.timestamp] = {
+                'link': '<img width="12" height="12" src="%s">' % getEmoji(mood.label[1:-1])
+            }
+        for snip in snippets:
+            if snip.timestamp in moodHash[user.id]:
+                moodHash[user.id][snip.timestamp]['snip'] = snip.content
+            else:
+                moodHash[user.id][snip.timestamp] = {
+                    'snip': snip.content
+                }
     year_, week_ = nextWeek(year, week)
     _year, _week = lastWeek(year, week)
     return render_template('users.html', team=team, users=users, dates=dates, moodHash=moodHash, _year=_year, _week=_week, year_=year_, week_=week_, year=year, month=month)
