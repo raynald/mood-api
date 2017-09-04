@@ -692,7 +692,9 @@ with open('slack_emoji.txt') as emoji_file:
 def getEmoji(name):
     if name in custom_emoji:
         if custom_emoji[name][:5] == 'alias':
-            return custom_emoji[custom_emoji[name][6:]]
+            if custom_emoji[name][6:] in custom_emoji:
+                return custom_emoji[custom_emoji[name][6:]]
+            return 'https://www.webpagefx.com/tools/emoji-cheat-sheet/graphics/emojis/%s.png' % custom_emoji[name][6:]
         else:
             return custom_emoji[name]
     return 'https://www.webpagefx.com/tools/emoji-cheat-sheet/graphics/emojis/%s.png' % name
@@ -737,7 +739,7 @@ class MoodCalendar(HTMLCalendar):
         if day == 0:
             return '<td class="noday">&nbsp;</td>'
         else:
-            timestamp = int(time.mktime(datetime(year=self.year, month=self.month, day=day).timetuple())) + 7200
+            timestamp = int(time.mktime(datetime(year=self.year, month=self.month, day=day).timetuple()))
             if timestamp in self.moodHash:
                 link = getEmoji(self.moodHash[timestamp])
                 return '<td class="%s">%s</td>' % (self.cssclasses[weekday], '<img width="12" height="12" src="%s">' % link)
@@ -764,8 +766,8 @@ def show_users(team_id):
         year = today.year
         week = today.isocalendar()[1]
         month = today.month
-    start_date = int(time.mktime(time.strptime('{} {} 1'.format(year,week), '%Y %W %w'))) + 7200
-    end_date = int(time.mktime(time.strptime('{} {} 0'.format(year,week), '%Y %W %w'))) + 7200
+    start_date = int(time.mktime(time.strptime('{} {} 1'.format(year,week), '%Y %W %w')))
+    end_date = int(time.mktime(time.strptime('{} {} 0'.format(year,week), '%Y %W %w')))
     dates = []
     for dato in xrange(start_date, end_date + 86400, 86400):
         dates += [{ 'timestamp': dato, 'date': datetime.fromtimestamp(dato).strftime('%Y-%m-%d')}]
