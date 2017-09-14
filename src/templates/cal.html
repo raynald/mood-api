@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ user.name }}'s Mood Calendar</h2>
+<a href="/d/u/{{user.id}}?year={{_year}}&month={{_month}}"><span class="glyphicon glyphicon-chevron-left"></span></a>
+<a href="/d/u/{{user.id}}?year={{year_}}&month={{month_}}"><span class="glyphicon glyphicon-chevron-right"></span></a>
+{{ cal|safe }}
+{% endblock content %}

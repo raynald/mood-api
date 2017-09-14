@@ -1,11 +1,16 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Resource, Api
 from flask_restful import reqparse
 from flaskext.mysql import MySQL
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
+from flask import render_template
+from calendar import HTMLCalendar
+from datetime import datetime
+import time
+import json
 
 mysql = MySQL()
 app = Flask(__name__)
@@ -680,6 +685,137 @@ admin.add_view(ModelView(Team, db.session))
 admin.add_view(ModelView(User, db.session))
 admin.add_view(ModelView(Mood, db.session))
 admin.add_view(ModelView(Snippet, db.session))
+
+with open('slack_emoji.txt') as emoji_file:
+    custom_emoji = json.load(emoji_file)['emoji']
+
+def getEmoji(name):
+    if name in custom_emoji:
+        if custom_emoji[name][:5] == 'alias':
+            if custom_emoji[name][6:] in custom_emoji:
+                return custom_emoji[custom_emoji[name][6:]]
+            return 'https://www.webpagefx.com/tools/emoji-cheat-sheet/graphics/emojis/%s.png' % custom_emoji[name][6:]
+        else:
+            return custom_emoji[name]
+    return 'https://www.webpagefx.com/tools/emoji-cheat-sheet/graphics/emojis/%s.png' % name
+
+
+def nextMonth(year, month):
+    if month == 12:
+        return year + 1, 1
+    else:
+        return year, month + 1
+
+
+def lastMonth(year, month):
+    if month == 1:
+        return year - 1, 12
+    else:
+        return year, month - 1
+
+
+def nextWeek(year, week):
+    if week == 52:
+        return year + 1, 1
+    else:
+        return year, week + 1
+
+
+def lastWeek(year, week):
+    if week == 1:
+        return year - 1, 52
+    else:
+        return year, week - 1
+
+
+class MoodCalendar(HTMLCalendar):
+    def __init__(self, moodHash, year, month):
+        super(MoodCalendar, self).__init__()
+        self.moodHash = moodHash
+        self.year = year
+        self.month = month
+
+    def formatday(self, day, weekday):
+        if day == 0:
+            return '<td class="noday">&nbsp;</td>'
+        else:
+            timestamp = int(time.mktime(datetime(year=self.year, month=self.month, day=day).timetuple()))
+            if timestamp in self.moodHash:
+                link = getEmoji(self.moodHash[timestamp])
+                return '<td class="%s">%s</td>' % (self.cssclasses[weekday], '<img width="12" height="12" src="%s">' % link)
+            else:
+                return '<td class="%s">%d</td>' % (self.cssclasses[weekday], day)
+
+
+@app.route('/d')
+def show_teams():
+    teams = Team.query.all()
+    return render_template('teams.html', teams=teams)
+
+
+@app.route('/d/t/<string:team_id>')
+def show_users(team_id):
+    req_year = request.args.get('year')
+    req_week = request.args.get('week')
+    if req_year and req_week:
+        year = int(req_year)
+        week = int(req_week)
+        month = int(datetime.fromtimestamp(time.mktime(time.strptime('{} {} 1'.format(year,week), '%Y %W %w'))).strftime('%m'))
+    else:
+        today = datetime.today()
+        year = today.year
+        week = today.isocalendar()[1]
+        month = today.month
+    start_date = int(time.mktime(time.strptime('{} {} 1'.format(year,week), '%Y %W %w')))
+    end_date = int(time.mktime(time.strptime('{} {} 0'.format(year,week), '%Y %W %w')))
+    dates = []
+    for dato in xrange(start_date, end_date + 86400, 86400):
+        dates += [{ 'timestamp': dato, 'date': datetime.fromtimestamp(dato).strftime('%Y-%m-%d')}]
+    team = Team.query.get(team_id)
+    users = team.users
+    moodHash = {}
+    for user in users:
+        moodHash[user.id] = {}
+        moods = Mood.query.filter_by(user=user).filter(Mood.timestamp>=start_date).filter(Mood.timestamp<=end_date)
+        snippets = Snippet.query.filter_by(user=user).filter(Mood.timestamp>=start_date).filter(Mood.timestamp<=end_date)
+        for mood in moods:
+            moodHash[user.id][mood.timestamp] = {
+                'link': '<img width="12" height="12" src="%s">' % getEmoji(mood.label[1:-1])
+            }
+        for snip in snippets:
+            if snip.timestamp in moodHash[user.id]:
+                moodHash[user.id][snip.timestamp]['snip'] = snip.content
+            else:
+                moodHash[user.id][snip.timestamp] = {
+                    'snip': snip.content
+                }
+    year_, week_ = nextWeek(year, week)
+    _year, _week = lastWeek(year, week)
+    return render_template('users.html', team=team, users=users, dates=dates, moodHash=moodHash, _year=_year, _week=_week, year_=year_, week_=week_, year=year, month=month)
+
+
+@app.route('/d/u/<string:user_id>')
+def show_calendar(user_id):
+    req_year = request.args.get('year')
+    req_month =  request.args.get('month')
+    user = User.query.get(user_id)
+    moods = Mood.query.filter_by(user=user)
+    moodHash = {}
+    for mood in moods:
+        moodHash[mood.timestamp] = mood.label[1:-1]
+    if req_year and req_month:
+        year = int(req_year)
+        month = int(req_month)
+    else:
+        today = datetime.today()
+        year = today.year
+        month = today.month
+    cal = MoodCalendar(moodHash, year, month)
+    htmlCal = cal.formatmonth(year, month)
+    year_, month_ = nextMonth(year, month)
+    _year, _month = lastMonth(year, month)
+    return render_template('cal.html', user=user, cal=htmlCal, _year=_year, _month=_month, year_=year_, month_=month_)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Team {{team.name}}</h2>
+<a href="/d/t/{{team.id}}?year={{_year}}&week={{_week}}"><span class="glyphicon glyphicon-chevron-left"></span></a>
+<a href="/d/t/{{team.id}}?year={{year_}}&week={{week_}}"><span class="glyphicon glyphicon-chevron-right"></span></a>
+<table class="table">
+    <tr>
+        <th> Name </th>
+        {% for date in dates %}
+        <th> {{ date.date }} </th>
+        {% endfor %}
+    </tr>
+{% for user in users %}
+    <tr>
+        <th><a href="/d/u/{{user.id}}?year={{year}}&month={{month}}">{{ user.name }}</a></th>
+        {% for date in dates %}
+            {% if moodHash[user.id][date.timestamp] %}
+                <th data-balloon="{{ moodHash[user.id][date.timestamp]['snip'] }}" data-baloon-pos="up">{{ moodHash[user.id][date.timestamp]['link']|safe }}</th>
+            {% else %}
+                <th></th>
+            {% endif %}
+        {% endfor %}
+    </tr>
+{% endfor %}
+</table>
+{% endblock content %}
