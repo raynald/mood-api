@@ -697,10 +697,18 @@ def getEmoji(name):
         if custom_emoji[name][:5] == 'alias':
             if custom_emoji[name][6:] in custom_emoji:
                 return custom_emoji[custom_emoji[name][6:]]
-            return url_for('static', filename = emoji_one[custom_emoji[name][6:]])
+            if custom_emoji[name][6:] in emoji_one:
+                return url_for('static', filename = emoji_one[custom_emoji[name][6:]])
+            else:
+                print custom_emoji[name][6:]
+                return ''
         else:
             return custom_emoji[name]
-    return url_for('static', filename=emoji_one[name])
+    if name in emoji_one:
+        return url_for('static', filename=emoji_one[name])
+    else:
+        print name
+        return ''
 
 
 def nextMonth(year, month):
