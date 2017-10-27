@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, url_for
 from flask_restful import Resource, Api
 from flask_restful import reqparse
 from flaskext.mysql import MySQL
@@ -689,15 +689,26 @@ admin.add_view(ModelView(Snippet, db.session))
 with open('slack_emoji.txt') as emoji_file:
     custom_emoji = json.load(emoji_file)['emoji']
 
+with open ('emoji_one.txt') as emoji_one_file:
+    emoji_one = json.load(emoji_one_file)
+
 def getEmoji(name):
     if name in custom_emoji:
         if custom_emoji[name][:5] == 'alias':
             if custom_emoji[name][6:] in custom_emoji:
                 return custom_emoji[custom_emoji[name][6:]]
-            return 'https://www.webpagefx.com/tools/emoji-cheat-sheet/graphics/emojis/%s.png' % custom_emoji[name][6:]
+            if custom_emoji[name][6:] in emoji_one:
+                return url_for('static', filename = emoji_one[custom_emoji[name][6:]])
+            else:
+                print custom_emoji[name][6:]
+                return ''
         else:
             return custom_emoji[name]
-    return 'https://www.webpagefx.com/tools/emoji-cheat-sheet/graphics/emojis/%s.png' % name
+    if name in emoji_one:
+        return url_for('static', filename=emoji_one[name])
+    else:
+        print name
+        return ''
 
 
 def nextMonth(year, month):
