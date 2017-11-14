@@ -791,6 +791,7 @@ def show_users(team_id):
         snippets = Snippet.query.filter_by(user=user).filter(Mood.timestamp>=start_date).filter(Mood.timestamp<=end_date)
         for mood in moods:
             moodHash[user.id][mood.timestamp] = {
+                'value': mood.value,
                 'link': '<img width="12" height="12" src="%s">' % getEmoji(mood.label[1:-1])
             }
         for snip in snippets:
